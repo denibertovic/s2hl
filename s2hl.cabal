@@ -27,11 +27,11 @@ library
                      , cassava
                      , bytestring
                      , vector
-                     , hastache
                      , containers
                      , time
                      , tagsoup
                      , scalpel
+                     , HStringTemplate
   default-language:    Haskell2010
 
 executable s2hl-exe

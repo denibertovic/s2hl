@@ -3,28 +3,31 @@
 
 module S2HL.Lib where
 
-import           Control.Monad           (forM, forM_, when, (=<<))
-import qualified Data.ByteString.Lazy    as B
-import           Data.Char               (ord)
+import           Control.Monad                       (forM, forM_, when, (=<<))
+import qualified Data.ByteString.Lazy                as B
+import           Data.Char                           (ord)
 import           Data.Csv
-import           Data.List               (elem, filter, sort)
-import           Data.Map                (Map, fromList, (!))
-import qualified Data.Text.Lazy          as T
-import           Data.Text.Lazy.Encoding as E
-import qualified Data.Text.Lazy.IO       as TIO
-import           Data.Time               (Day)
-import           Data.Time.Format        (defaultTimeLocale, formatTime,
-                                          parseTimeOrError)
-import qualified Data.Vector             as V
-import           System.Directory        (doesFileExist, listDirectory,
-                                          makeAbsolute, removeFile)
-import           System.FilePath         ((</>))
-import           System.IO               (IOMode (..), hGetContents, hGetLine,
-                                          hSetEncoding, openFile, utf16)
-import           Text.Hastache
-import           Text.Hastache.Context
+import           Data.List                           (elem, filter, sort)
+import           Data.Map                            (Map, fromList, (!))
+import qualified Data.Text.Lazy                      as T
+import           Data.Text.Lazy.Encoding             as E
+import qualified Data.Text.Lazy.IO                   as TIO
+import           Data.Time                           (Day)
+import           Data.Time.Format                    (defaultTimeLocale,
+                                                      formatTime,
+                                                      parseTimeOrError)
+import qualified Data.Vector                         as V
+import           System.Directory                    (doesFileExist,
+                                                      listDirectory,
+                                                      makeAbsolute, removeFile)
+import           System.FilePath                     ((</>))
+import           System.IO                           (IOMode (..), hGetContents,
+                                                      hGetLine, hSetEncoding,
+                                                      openFile, utf16)
 import           Text.HTML.Scalpel
 import           Text.HTML.TagSoup
+import           Text.StringTemplate
+import           Text.StringTemplate.GenericStandard
 
 import           S2HL.Options
 import           S2HL.Types
@@ -33,10 +36,10 @@ import           S2HL.Types
 hledgerOutputFileName :: String
 hledgerOutputFileName = "hledger.journal"
 
-template :: T.Text
-template = "{{DATE}} {{DESCRIPTION}}\n\
-\    expenses:{{CURRENCY}}         {{EXPENSES}}\n\
-\    assets:{{CURRENCY}}           {{ASSETS}}\n\n"
+template :: StringTemplate String
+template = newSTMP "$context.hlDate$ $context.hlDescription$\n\
+\    expenses:$context.hlCurrency$         $context.hlExpenses$\n\
+\    assets:$context.hlCurrency$           $context.hlAssets$\n\n"
 
 listStatements :: FilePath -> Currency -> IO [FilePath]
 listStatements d c = do
@@ -54,15 +57,12 @@ readFileWithConversion f = do
     let contentsUtf8 = E.encodeUtf8 . E.decodeUtf16LE $ contents
     return contentsUtf8
 
-generateHledgerText :: T.Text -> HledgerContext -> IO T.Text
-generateHledgerText template c = do
-            rendered <- hastacheStr defaultConfig (encodeStr . T.unpack $ template) (mkStrContext context)
-            return rendered
-        where context "DATE" = MuVariable (hlDate c)
-              context "DESCRIPTION" = MuVariable (hlDescription c)
-              context "CURRENCY" = MuVariable (curTxt)
-              context "EXPENSES" = MuVariable (curPlusAmount $ hlExpenses c)
-              context "ASSETS" = MuVariable (curPlusAmount $ hlAssets c)
+generateHledgerText :: StringTemplate String -> HledgerContext -> T.Text
+generateHledgerText template c =
+            T.pack $ toString $ setAttribute "context" context template
+        where context = c { hlExpenses = curPlusAmount $ hlExpenses c
+                          , hlAssets = curPlusAmount $ hlAssets c
+                          }
               curTxt = T.pack . show . hlCurrency $ c
               curPlusAmount a = case a of
                                  "" -> ""
@@ -96,8 +96,7 @@ csv2Hledger f c = do
                                 , hlExpenses = T.strip . amountOut $ row
                                 , hlAssets = T.strip . amountIn $ row
                                 }
-                        hl <- generateHledgerText template context
-                        return hl
+                        return $ generateHledgerText template context
 
 html2Hledger :: FilePath -> Currency -> IO [T.Text]
 html2Hledger f c = do
@@ -108,8 +107,7 @@ html2Hledger f c = do
             Nothing -> error "failed to parse html"
             Just cs -> do
                 forM cs $  \c -> do
-                    hl <- generateHledgerText template c
-                    return hl
+                    return $ generateHledgerText template c
     where
         trStr = "tr" :: String
         tdStr = "td" :: String

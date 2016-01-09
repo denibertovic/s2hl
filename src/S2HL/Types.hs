@@ -1,14 +1,17 @@
+{-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module S2HL.Types where
 import           Data.Csv
+import           Data.Data          (Data)
 import           Data.Text.Encoding as E
 import           Data.Text.Lazy     as T
+import           Data.Typeable      (Typeable)
 
 
-data Currency = HRK | USD | EUR deriving (Eq, Show, Read)
+data Currency = HRK | USD | EUR deriving (Eq, Show, Read, Data, Typeable)
 
 data HledgerContext = HledgerContext {
                  hlDate        :: T.Text
@@ -16,7 +19,7 @@ data HledgerContext = HledgerContext {
                , hlDescription :: T.Text
                , hlExpenses    :: T.Text
                , hlAssets      :: T.Text
-               } deriving (Eq, Show)
+               } deriving (Eq, Show, Typeable, Data)
 
 data ErsteCSV = ErsteCSV {
                 tNo               :: !T.Text
