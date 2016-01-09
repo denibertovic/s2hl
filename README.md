@@ -1,6 +1,6 @@
 # s2hl
 
-A tool for converting Erste bank statements to Hledger Journal file
+A tool for converting Erste bank statements to [Hledger](http://hledger.org/) Journal file
 
 `NOTE`: This will probably on work with (csv and html) bank statements
 exported from [Erste in Croatia](http://www.erstebank.hr/).
