@@ -15,9 +15,9 @@ main = execParser opts >>= entrypoint
       ( fullDesc
      <> progDesc "Converts from Erste CSV and HTML statements to\
      \ HLedger journal format."
-     <> header "Erste2Hledger - A converter from Erste CSV/HTML\
-     \ statemets to Hledger journal file.\
-     \ Requires the directory structure statments/{CURRENCY}/*.{csv,html}" )
+     <> header "s2hl - A converter from Erste CSV/HTML\
+     \ statemets to Hledger journal format.\
+     \ Requires the directory structure  SOMEPATH/statements/{CURRENCY}/*.{csv,html}" )
 
 
 -- import           Text.Parsec
