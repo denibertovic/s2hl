@@ -39,11 +39,13 @@ the directory should containt subdirectories depending on which currency you're 
 
 Report issues on the Issue tracker: https://github.com/denibertovic/s2hl/issues
 
-1. Clone the repo (or fork it first and then clone):
+1. Install [stack](https://github.com/commercialhaskell/stack/releases)
+
+2. Clone the repo (or fork it first and then clone):
 
     git clone git@github.com:denibertovic/s2hl.git
 
-2. Build:
+3. Build:
 
     cd s2hl && stack build
 
