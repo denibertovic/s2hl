@@ -37,9 +37,11 @@ hledgerOutputFileName :: String
 hledgerOutputFileName = "hledger.journal"
 
 template :: StringTemplate String
-template = newSTMP "$context.hlDate$ $context.hlDescription$\n\
-\    expenses:$context.hlCurrency$         $context.hlExpenses$\n\
-\    assets:$context.hlCurrency$           $context.hlAssets$\n\n"
+template = newSTMP $ unlines [
+            "$context.hlDate$ $context.hlDescription$"
+          , "    expenses:$context.hlCurrency$         $context.hlExpenses$"
+          , "    assets:$context.hlCurrency$           $context.hlAssets$\n\n"
+          ]
 
 listStatements :: FilePath -> Currency -> IO [FilePath]
 listStatements d c = do
