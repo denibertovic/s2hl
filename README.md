@@ -43,9 +43,9 @@ Report issues on the Issue tracker: https://github.com/denibertovic/s2hl/issues
 
 2. Clone the repo (or fork it first and then clone):
 
-    git clone git@github.com:denibertovic/s2hl.git
+    `git clone git@github.com:denibertovic/s2hl.git`
 
 3. Build:
 
-    cd s2hl && make build
+    `cd s2hl && make build`
 
