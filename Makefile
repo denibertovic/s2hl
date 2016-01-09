@@ -9,6 +9,9 @@ BINARY_NAME=s2hl
 
 build:
 	@stack build
+	@echo "\nBinary available at:\n"
+	@echo "`pwd`/.stack-work/install/${ARCH}-linux/lts-3.16/7.10.2/bin/${BINARY_NAME}-exe"
+
 
 run:
 	@`pwd`/.stack-work/install/x86_64-linux/lts-3.16/7.10.2/bin/{BINARY_NAME}-exe \
