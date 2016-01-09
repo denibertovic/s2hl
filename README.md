@@ -47,5 +47,5 @@ Report issues on the Issue tracker: https://github.com/denibertovic/s2hl/issues
 
 3. Build:
 
-    cd s2hl && stack build
+    cd s2hl && make build
 
