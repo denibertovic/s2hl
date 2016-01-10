@@ -82,7 +82,6 @@ fixDateFormat d = T.pack . newDate $ d
 csv2Hledger :: FilePath -> Currency -> IO (V.Vector T.Text)
 csv2Hledger f c = do
         contents <- readFileWithConversion f
-        -- let res = decodeWith tabDelimited HasHeader contents
         let res = (decodeByNameWith tabDelimited contents) :: Either String (Header, V.Vector ErsteCSV)
         case res of
             Left  err -> error err
