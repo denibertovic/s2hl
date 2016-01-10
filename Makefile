@@ -18,7 +18,8 @@ run:
 		--statements-dir `pwd`/statements \
 		--output-dir `pwd`/out \
 		--currency USD \
-		--currency HRK
+		--currency HRK \
+		--debug
 
 static-build: clean
 	@mkdir -p release/build

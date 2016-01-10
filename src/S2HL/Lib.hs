@@ -4,6 +4,7 @@
 module S2HL.Lib where
 
 import           Control.Monad                       (forM, forM_, when, (=<<))
+import           Control.Monad.Writer
 import qualified Data.ByteString.Lazy                as B
 import           Data.Char                           (ord)
 import           Data.Csv
@@ -80,7 +81,6 @@ fixDateFormat d = T.pack . newDate $ d
 
 csv2Hledger :: FilePath -> Currency -> IO (V.Vector T.Text)
 csv2Hledger f c = do
-        print f
         contents <- readFileWithConversion f
         -- let res = decodeWith tabDelimited HasHeader contents
         let res = (decodeByNameWith tabDelimited contents) :: Either String (Header, V.Vector ErsteCSV)
@@ -102,7 +102,6 @@ csv2Hledger f c = do
 
 html2Hledger :: FilePath -> Currency -> IO [T.Text]
 html2Hledger f c = do
-        print f
         src <- TIO.readFile f
         let contexts = scrapeStringLike src getStatements :: Maybe [HledgerContext]
         case contexts of
@@ -136,29 +135,34 @@ html2Hledger f c = do
         lastN :: Int -> [a] -> [a]
         lastN n xs = drop (length xs - n) xs
 
-processLocalCurrency :: FilePath -> FilePath -> IO ()
+processLocalCurrency :: FilePath -> FilePath -> WriterT [FilePath] IO ()
 processLocalCurrency sDir oFile = do
-    fps <- listStatements sDir HRK
+    fps <- liftIO $ listStatements sDir HRK
+    tell fps
     forM_ fps $  \f -> do
-        res <- csv2Hledger f HRK
-        V.mapM_ (TIO.appendFile oFile) res
+        res <- liftIO $ csv2Hledger f HRK
+        liftIO $ V.mapM_ (TIO.appendFile oFile) res
 
-processForeignCurrencies :: FilePath -> FilePath -> [Currency] -> IO ()
+processForeignCurrencies :: FilePath -> FilePath -> [Currency] -> WriterT [FilePath] IO ()
 processForeignCurrencies sDir oFile curs =  do
     forM_ curs $ \c -> do
-        fps <- listStatements sDir c
+        fps <- liftIO $ listStatements sDir c
+        tell fps
         forM_ fps $ \f -> do
-            res <- html2Hledger f c
-            mapM_ (TIO.appendFile oFile) res
+            res <- liftIO $ html2Hledger f c
+            liftIO $ mapM_ (TIO.appendFile oFile) res
 
 entrypoint :: Statement2HledgerArgs -> IO ()
 entrypoint (Statement2HledgerArgs sDir oDir curs d) = do
         let hledgerFilePath = (oDir </> hledgerOutputFileName)
         exists <- doesFileExist hledgerFilePath
         when exists (removeFile hledgerFilePath)
-        when (elem HRK curs) $ processLocalCurrency sDir hledgerFilePath
-        when (foreignCurs /= []) $ processForeignCurrencies sDir hledgerFilePath foreignCurs
-        print "SUCCESS."
+        lcfs <- execWriterT . when (elem HRK curs) $ processLocalCurrency sDir hledgerFilePath
+        fcfs <- execWriterT . when (foreignCurs /= []) $ processForeignCurrencies sDir hledgerFilePath foreignCurs
+        let processedFiles = lcfs ++ fcfs
+        when (d) $ forM_ processedFiles $ \f -> do
+            putStr "Processing file: "
+            putStrLn f
     where
         foreignCurs = filter (\c -> c /= HRK) curs
 
