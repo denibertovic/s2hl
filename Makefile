@@ -1,20 +1,24 @@
 
 .PHONY = build run static-build clean release
 
-VERSION=0.1.0.0
+PROJECT_NAME ?= $(shell grep "^name" s2hl.cabal | cut -d " " -f17)
+VERSION ?= $(shell grep "^version:" s2hl.cabal | cut -d " " -f14)
+RESOLVER ?= $(shell grep "^resolver:" stack.yaml | cut -d " " -f2)
+GHC_VERSION ?= $(shell stack ghc -- --version | cut -d " " -f8)
 ARCH=$(shell uname -m)
 
-BINARY_NAME=s2hl
+BINARY_PATH = `pwd`/.stack-work/install/${ARCH}-linux/${RESOLVER}/${GHC_VERSION}/bin/${PROJECT_NAME}-exe
 
+BINARY_NAME = ${PROJECT_NAME}-exe
 
 build:
 	@stack build
 	@echo "\nBinary available at:\n"
-	@echo "`pwd`/.stack-work/install/${ARCH}-linux/lts-3.16/7.10.2/bin/${BINARY_NAME}-exe"
+	@echo ${BINARY_PATH}
 
 
 run:
-	@`pwd`/.stack-work/install/x86_64-linux/lts-3.16/7.10.2/bin/${BINARY_NAME}-exe \
+	@${BINARY_PATH} \
 		--statements-dir `pwd`/statements \
 		--output-dir `pwd`/out \
 		--currency USD \
