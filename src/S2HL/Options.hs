@@ -2,6 +2,7 @@
 
 module S2HL.Options where
 
+import           Data.Semigroup      ((<>))
 import           Options.Applicative
 import           S2HL.Types
 

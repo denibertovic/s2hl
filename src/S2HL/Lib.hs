@@ -68,7 +68,7 @@ generateHledgerText template c =
                           }
               curTxt = T.pack . show . hlCurrency $ c
               curPlusAmount a = case a of
-                                 "" -> ""
+                                 ""        -> ""
                                  otherwise -> (T.append a $ curTxt)
 
 fixDateFormat :: T.Text -> T.Text
@@ -84,7 +84,7 @@ csv2Hledger f c = do
         contents <- readFileWithConversion f
         let res = (decodeByNameWith tabDelimited contents) :: Either String (Header, V.Vector ErsteCSV)
         case res of
-            Left  err -> error err
+            Left  err            -> error err
             Right (header, rows) -> forM rows $ row2TextHelper
     where
         tabDelimited = defaultDecodeOptions {
@@ -109,9 +109,9 @@ html2Hledger f c = do
                 forM cs $  \c -> do
                     return $ generateHledgerText template c
     where
-        trStr = "tr" :: String
-        tdStr = "td" :: String
-        trItemsStr = "trItems" :: String
+        trStr = "tr"
+        tdStr = "td"
+        trItemsStr = "trItems"
         getStatements :: Scraper T.Text [HledgerContext]
         getStatements = chroots (trStr @: [hasClass trItemsStr]) tds
 

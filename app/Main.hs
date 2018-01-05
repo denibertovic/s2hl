@@ -3,6 +3,7 @@
 
 module Main where
 
+import           Data.Semigroup      ((<>))
 import qualified Data.Text           as T
 import           Options.Applicative
 import           S2HL.Lib
