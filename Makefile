@@ -11,12 +11,13 @@ export BINARY_PATH = `stack path --local-install-root`/bin/${PROJECT_NAME}-exe
 
 BINARY_NAME = ${PROJECT_NAME}-exe
 
+## Build binary
 build:
 	@stack build
 	@echo "\nBinary available at:\n"
 	@echo ${BINARY_PATH}
 
-
+## Helper for local testing
 run:
 	@${BINARY_PATH} \
 		--statements-dir `pwd`/statements \
@@ -25,6 +26,7 @@ run:
 		--currency HRK \
 		--debug
 
+## Build static binary
 static-build: clean
 	@mkdir -p release/build
 	@stack ghc -- \
@@ -42,10 +44,24 @@ static-build: clean
 	-hidir release/build \
 	-o release/${BINARY_NAME}-${VERSION}-linux-${ARCH}
 
+## Clean
 clean:
 	@rm -rf release
 
-release: static-build
-	@echo "\n\nRelease available at:\n"
-	@echo "STATIC BINARY: `pwd`/release/{BINARY_NAME}-${VERSION}-linux-${ARCH}\n"
+## Cut new release
+release:
+	@git tag ${VERSION} && git push --tags
+
+## Show help screen.
+help:
+	@echo "Please use \`make <target>' where <target> is one of\n\n"
+	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
+		helpMessage = match(lastLine, /^## (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")-1); \
+			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
+			printf "%-30s %s\n", helpCommand, helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
