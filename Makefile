@@ -7,7 +7,7 @@ RESOLVER ?= $(shell grep "^resolver:" stack.yaml | cut -d " " -f2)
 GHC_VERSION ?= $(shell stack ghc -- --version | cut -d " " -f8)
 ARCH=$(shell uname -m)
 
-export BINARY_PATH = `stack path --local-install-root`/bin/${PROJECT_NAME}-exe
+export BINARY_PATH = `stack path --local-install-root`/bin/${PROJECT_NAME}
 
 BINARY_NAME = ${PROJECT_NAME}-exe
 
