@@ -12,7 +12,7 @@ import           S2HL.Options
 main :: IO ()
 main = execParser opts >>= entrypoint
   where
-    opts = info (helper <*> statement2HledgerArgs)
+    opts = info (helper <*> versionOpt <*> statement2HledgerArgs)
       ( fullDesc
      <> progDesc "Converts from Erste CSV and HTML statements to\
      \ HLedger journal format."

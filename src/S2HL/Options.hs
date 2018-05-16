@@ -3,7 +3,9 @@
 module S2HL.Options where
 
 import           Data.Semigroup      ((<>))
+import           Data.Version        (showVersion)
 import           Options.Applicative
+import           Paths_s2hl          (version)
 import           S2HL.Types
 
 data Statement2HledgerArgs = Statement2HledgerArgs
@@ -13,6 +15,11 @@ data Statement2HledgerArgs = Statement2HledgerArgs
             , debug        :: Bool
             }
 
+
+versionOpt = infoOption (showVersion version) (
+               long "version"
+               <> short 'v'
+               <> help "Show version.")
 
 statement2HledgerArgs :: Parser Statement2HledgerArgs
 statement2HledgerArgs = Statement2HledgerArgs

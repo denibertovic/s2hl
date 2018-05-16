@@ -15,6 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+  other-modules:       Paths_s2hl
   exposed-modules:     S2HL.Lib
                      , S2HL.Options
                      , S2HL.Types
