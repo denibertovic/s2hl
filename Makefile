@@ -1,5 +1,6 @@
+.PHONY: build run static-build clean release
 
-.PHONY = build run static-build clean release
+.DEFAULT_GOAL = help
 
 PROJECT_NAME ?= $(shell grep "^name" s2hl.cabal | cut -d " " -f17)
 VERSION ?= $(shell grep "^version:" s2hl.cabal | cut -d " " -f14)
