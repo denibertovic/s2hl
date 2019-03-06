@@ -21,7 +21,7 @@ import qualified Data.Vector                         as V
 import           System.Directory                    (doesFileExist,
                                                       listDirectory,
                                                       makeAbsolute, removeFile)
-import           System.FilePath                     ((</>))
+import           System.FilePath                     ((</>), takeExtension)
 import           System.IO                           (IOMode (..), hGetContents,
                                                       hGetLine, hSetEncoding,
                                                       openFile, utf16)
@@ -79,17 +79,18 @@ fixDateFormat d = T.pack . newDate $ d
         oldDate d = (parseTimeOrError True defaultTimeLocale oldFormat d) :: Day
         newDate d = (formatTime defaultTimeLocale newFormat (oldDate . T.unpack $ d)) :: String
 
-csv2Hledger :: FilePath -> Currency -> IO (V.Vector T.Text)
+csv2Hledger :: FilePath -> Currency -> IO [T.Text]
 csv2Hledger f c = do
         contents <- readFileWithConversion f
         let res = (decodeByNameWith tabDelimited contents) :: Either String (Header, V.Vector ErsteCSV)
         case res of
             Left  err            -> error err
-            Right (header, rows) -> forM rows $ row2TextHelper
+            Right (header, rows) ->  return $ V.toList $ V.map row2TextHelper rows
     where
         tabDelimited = defaultDecodeOptions {
                decDelimiter = fromIntegral (ord '\t')}
-        row2TextHelper row = do
+        row2TextHelper :: ErsteCSV -> T.Text
+        row2TextHelper row =
                         let context = HledgerContext
                                 { hlCurrency = c
                                 , hlDate = (fixDateFormat . dateOfCurrency $ row)
@@ -97,7 +98,7 @@ csv2Hledger f c = do
                                 , hlExpenses = T.strip . amountOut $ row
                                 , hlAssets = T.strip . amountIn $ row
                                 }
-                        return $ generateHledgerText template context
+                        in generateHledgerText template context
 
 html2Hledger :: FilePath -> Currency -> IO [T.Text]
 html2Hledger f c = do
@@ -134,13 +135,23 @@ html2Hledger f c = do
         lastN :: Int -> [a] -> [a]
         lastN n xs = drop (length xs - n) xs
 
+processFile :: FilePath -> Currency -> IO [T.Text]
+processFile f cur = do
+  let csvLike = [".CSV", ".csv"]
+  let htmlLike = [".html", ".HTML"]
+  let ext = takeExtension f
+  case ext of
+    e | e `elem` csvLike  -> csv2Hledger f cur
+      | e `elem` htmlLike -> html2Hledger f cur
+    otherwhise -> error $ "Unsupported file extension: " <> ext
+
 processLocalCurrency :: FilePath -> FilePath -> WriterT [FilePath] IO ()
 processLocalCurrency sDir oFile = do
     fps <- liftIO $ listStatements sDir HRK
     tell fps
     forM_ fps $  \f -> do
-        res <- liftIO $ csv2Hledger f HRK
-        liftIO $ V.mapM_ (TIO.appendFile oFile) res
+        res <- liftIO $ processFile f HRK
+        liftIO $ mapM_ (TIO.appendFile oFile) res
 
 processForeignCurrencies :: FilePath -> FilePath -> [Currency] -> WriterT [FilePath] IO ()
 processForeignCurrencies sDir oFile curs =  do
@@ -148,7 +159,7 @@ processForeignCurrencies sDir oFile curs =  do
         fps <- liftIO $ listStatements sDir c
         tell fps
         forM_ fps $ \f -> do
-            res <- liftIO $ html2Hledger f c
+            res <- liftIO $ processFile f c
             liftIO $ mapM_ (TIO.appendFile oFile) res
 
 entrypoint :: Statement2HledgerArgs -> IO ()
