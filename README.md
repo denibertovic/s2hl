@@ -1,10 +1,5 @@
 # s2hl
 
-| Master |
-| -------|
-| [![master](https://travis-ci.org/denibertovic/s2hl.svg?branch=master)](https://travis-ci.org/denibertovic/s2hl) |
-
-
 A tool for converting Erste bank statements to [Hledger](http://hledger.org/) Journal file
 
 `NOTE`: This will probably on work with (csv and html) bank statements
